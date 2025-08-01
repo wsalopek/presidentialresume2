@@ -1,0 +1,63 @@
+name: Auto Update Congress Profiles
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 1'  # Every Monday at 7 AM UTC
+
+jobs:
+  update-profiles:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Show directory tree (debug)
+        run: |
+          echo "GitHub working dir:"
+          pwd
+          echo "Files:"
+          ls -R
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install openai requests
+
+      - name: Run fetch_members.py
+        working-directory: ${{ github.workspace }}
+        run: python scripts/fetch_members.py
+
+      - name: Run generate_resume_agent.py
+        working-directory: ${{ github.workspace }}
+        run: python scripts/generate_resume_agent.py
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Run fetch_fec_donors.js
+        working-directory: ${{ github.workspace }}
+        run: node scripts/fetch_fec_donors.js
+
+      - name: Commit and push updated data
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "actions@github.com"
+          git add data/
+          git commit -m "🔄 Weekly update of Congress data" || echo "No changes to commit"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      FEC_API_KEY: ${{ secrets.FEC_API_KEY }}
+      SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
