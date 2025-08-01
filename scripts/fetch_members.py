@@ -3,10 +3,10 @@ import requests
 import json
 
 API_BASE = "https://api.congress.gov/v3/member"
-CONGRESS = 118  # You can update this as needed
+CONGRESS = 118
 
-# Read the API key from the environment variable
 API_KEY = os.getenv("CONGRESS_API_KEY")
+print("Using Congress API Key:", "✅ yes" if API_KEY else "❌ missing")
 
 HEADERS = {
     "X-API-Key": API_KEY
@@ -20,7 +20,7 @@ def fetch_chamber(chamber):
 
 def save_json(data, filename):
     os.makedirs("data", exist_ok=True)
-    with open(f"data/{filename}", "w") as f:
+    with open(f"data/{filename}", "w", encoding="utf‑8") as f:
         json.dump(data, f, indent=2)
 
 def main():
